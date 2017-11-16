@@ -7,30 +7,40 @@ import random
 import csv
 
 def load_data():
-
     data = []
+    X = []
+    y = []
 
     # Betöltés
     with open('data.csv', 'r') as f:
         csvreader = csv.DictReader(f)
         for item in csvreader:
+            # A 'data' tömb elemei: ['dátum string', 'szerző', 'komment', 'osztály cimke ('0': nem spam, '1': spam)']
             data.append([item['DATE'], item['AUTHOR'], item['CONTENT'], item['CLASS']])
 
-    # A 'data' tömb elemei: ['dátum string', 'szerző', 'komment', 'osztály cimke ('0': nem spam, '1': spam)']
+            X.append(item['CONTENT'])
+            y.append(item['CLASS'])
 
     # Train/test szétválasztás
     split = 0.7
-    data = np.asarray(data)
-    perm = np.random.permutation(len(data))
+    data = np.asarray(X)
+    perm = np.random.permutation(len(X))
+    labels = np.asarray(y)
+    perm2 = np.random.permutation(len(y))
 
-    train = data[perm][0:int(len(data) * split)]
-    test = data[perm][int(len(data) * split):]
+    X_train = data[perm][0:int(len(data) * split)]
+    X_test = data[perm][int(len(data) * split):]
 
-    print('Train set: ', np.shape(train))
-    print('Test set: ', np.shape(test))
+    y_train = data[perm][0:int(len(data) * split)]
+    y_test = data[perm][int(len(data) * split):]
 
-    return test
+    print('X Train set: ', np.shape(X_train))
+    print('X Test set: ', np.shape(X_test))
 
+    print('y Train set: ', np.shape(y_train))
+    print('y Test set: ', np.shape(y_test))
+
+    return X_test
 
 # Buta osztályozó
 def dumb_classify(data):
