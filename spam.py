@@ -48,17 +48,10 @@ def load_data():
     return X_test
 
 def fit(X_train, y_train):
-    count_vect = CountVectorizer()
-    X_train_counts = count_vect.fit_transform(X_train)
-    X_train_counts.shape
+    text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()), ('clf', MultinomialNB())])
+    text_clf.fit(X_train, y_train)
 
-    tfidf_transformer = TfidfTransformer()
-    X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
-    X_train_tfidf.shape
-
-    clf = MultinomialNB().fit(X_train_tfidf, y_train)
-    
-    return clf
+    return text_clf
 
 # Buta osztályozó
 def dumb_classify(data):
