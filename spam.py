@@ -5,6 +5,11 @@
 import numpy as np
 import random
 import csv
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import SGDClassifier
 
 def load_data():
     data = []
@@ -41,6 +46,19 @@ def load_data():
     print('y Test set: ', np.shape(y_test))
 
     return X_test
+
+def fit(X_train, y_train):
+    count_vect = CountVectorizer()
+    X_train_counts = count_vect.fit_transform(X_train)
+    X_train_counts.shape
+
+    tfidf_transformer = TfidfTransformer()
+    X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+    X_train_tfidf.shape
+
+    clf = MultinomialNB().fit(X_train_tfidf, y_train)
+    
+    return clf
 
 # Buta osztályozó
 def dumb_classify(data):
