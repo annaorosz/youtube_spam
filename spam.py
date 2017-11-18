@@ -1,7 +1,5 @@
 # coding: utf-8
 
-# In[22]:
-
 import numpy as np
 import random
 import csv
@@ -10,6 +8,9 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import SGDClassifier
+from sklearn import metrics
+
+
 
 def load_data():
     data = []
@@ -23,21 +24,21 @@ def load_data():
             # A 'data' tömb elemei: ['dátum string', 'szerző', 'komment', 'osztály cimke ('0': nem spam, '1': spam)']
             data.append([item['DATE'], item['AUTHOR'], item['CONTENT'], item['CLASS']])
 
+            # a model epitesehez csak a kommentek szuksegesek
             X.append(item['CONTENT'])
             y.append(item['CLASS'])
 
     # Train/test szétválasztás
     split = 0.7
     data = np.asarray(X)
-    perm = np.random.permutation(len(X))
     labels = np.asarray(y)
-    perm2 = np.random.permutation(len(y))
+    perm = np.random.permutation(len(X))
 
     X_train = data[perm][0:int(len(data) * split)]
     X_test = data[perm][int(len(data) * split):]
 
-    y_train = data[perm][0:int(len(data) * split)]
-    y_test = data[perm][int(len(data) * split):]
+    y_train = labels[perm][0:int(len(labels) * split)]
+    y_test = labels[perm][int(len(labels) * split):]
 
     print('X Train set: ', np.shape(X_train))
     print('X Test set: ', np.shape(X_test))
@@ -45,22 +46,25 @@ def load_data():
     print('y Train set: ', np.shape(y_train))
     print('y Test set: ', np.shape(y_test))
 
-    return X_test
+    return (X_train, y_train, X_test, y_test)
 
-def fit(X_train, y_train):
+def fit_MNB(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()), ('clf', MultinomialNB())])
     text_clf.fit(X_train, y_train)
 
     return text_clf
 
-# Buta osztályozó
-def dumb_classify(data):
-    threshold = 0.3
-    if random.random() > threshold:
-        return '1'
-    else:
-        return '0'
+def fit_SVM(X_train, y_train):
+    text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
+                         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42))])
+    text_clf.fit(X_train, y_train)
 
+    return text_clf
+
+def predict(clf, X_test, y_test):
+    predicted = clf.predict(X_test)
+    print (np.mean(predicted == y_test))
+    print(metrics.classification_report(y_test, predicted))
 
 # Használd a 'train' adatokat az osztályozó módszer kidolgozására, a 'test' adatokat kiértékelésére!
 # Lehetőleg használj gépi tanulást!
@@ -68,19 +72,15 @@ def dumb_classify(data):
 
 # Példa kiértékelés 'recall' számításával.
 # Kérdés: Milyen egyéb metrikát használnál kiértékelésre és miért?
-def fit(test):
-
-    sum_positive = 0
-    found_positive = 0
-
-    for datapoint in test:
-        if datapoint[-1] == '1':
-            sum_positive += 1
-            if dumb_classify(datapoint) == '1':
-                found_positive += 1
-
-    print('Recall:', found_positive / sum_positive)
 
 if __name__ == '__main__':
-    fit(load_data())
+    X_train, y_train, X_test, y_test = load_data()
+
+    #fit with a Multinomial Naive Bayes model
+    clf = fit_MNB(X_train, y_train)
+    predict(clf, X_test, y_test)
+
+    #fit with an SVM gradient descent classifier
+    clf = fit_SVM(X_train, y_train)
+    predict(clf, X_test, y_test)
 
