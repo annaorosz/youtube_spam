@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import numpy as np
-import random
 import csv
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -9,8 +8,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import SGDClassifier
 from sklearn import metrics
-
-
+from sklearn.svm import SVC
+from sklearn.metrics.pairwise import cosine_similarity
 
 def load_data():
     data = []
@@ -56,7 +55,15 @@ def fit_MNB(X_train, y_train):
 
 def fit_SVM(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
-                         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42))])
+                         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42,
+                                               max_iter=5, tol=None))])
+    text_clf.fit(X_train, y_train)
+
+    return text_clf
+
+def fit_cos(X_train, y_train):
+    text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
+                         ('clf', SVC(kernel=cosine_similarity, random_state=42))])
     text_clf.fit(X_train, y_train)
 
     return text_clf
@@ -84,3 +91,6 @@ if __name__ == '__main__':
     clf = fit_SVM(X_train, y_train)
     predict(clf, X_test, y_test)
 
+    #fit with an SVM cosine similarity classifier
+    clf = fit_cos(X_train, y_train)
+    predict(clf, X_test, y_test)
