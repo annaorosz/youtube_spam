@@ -59,8 +59,7 @@ def fit_MNB(X_train, y_train):
 # build a Stochastic Gradient Descent model with the given X_train and y_train data
 def fit_SGD(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
-                         ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42,
-                                               max_iter=5, tol=None))])
+                         ('clf', SGDClassifier(max_iter=5, tol=None))])
     text_clf.fit(X_train, y_train)
 
     return text_clf
@@ -69,6 +68,15 @@ def fit_SGD(X_train, y_train):
 # build an SVM model with a cosine similarity kernel with the given X_train and y_train data
 def fit_SVM(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
+                         ('clf', SVC(kernel=cosine_similarity))])
+    text_clf.fit(X_train, y_train)
+
+    return text_clf
+
+
+# build the best model pre-computed using grid search
+def fit_best_model(X_train, y_train):
+    text_clf = Pipeline([('vect', CountVectorizer(ngram_range=(1, 2))), ('tfidf', TfidfTransformer(use_idf=True)),
                          ('clf', SVC(kernel=cosine_similarity, random_state=42))])
     text_clf.fit(X_train, y_train)
 
@@ -86,6 +94,9 @@ def predict(clf, X_test, y_test):
     return np.mean(predicted == y_test)
 
 
+# tune the parameters for the SGD model using Grid Search and print the metrics for the best such model
+# not executing in the final version because the computation is expensive / takes a long time
+# csak a kiserlethez szukseges, nem a vegso verziohoz
 def gs_SGD(X_train, y_train, X_test, y_test):
     parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False),
                   'clf__alpha': (1e-2, 1e-3, 1e-4), 'clf__loss': ('log', 'perceptron'),  'clf__max_iter': (3, 4, 5),
@@ -100,11 +111,14 @@ def gs_SGD(X_train, y_train, X_test, y_test):
         print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
     # Példa kiértékelés 'recall' számításával.
-    return np.mean(predicted == y_test)
+    print np.mean(predicted == y_test)
 
 
+# tune the parameters for the SVM model using Grid Search and print the metrics for the best such model
+# not executing in the final version because the computation is expensive / takes a long time
+# csak a kiserlethez szukseges, nem a vegso verziohoz
 def gs_SVM(X_train, y_train, X_test, y_test):
-    parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False),
+    parameters = {'vect__ngram_range': [(1, 1), (1, 2), (1, 3)],  'tfidf__use_idf': (True, False),
                   'clf__kernel': ('rbf', cosine_similarity, 'linear', 'poly'), 'clf__random_state': (42, None),}
 
     gs_clf = GridSearchCV(fit_SVM(X_train, y_train), parameters, n_jobs=-1)
@@ -116,7 +130,7 @@ def gs_SVM(X_train, y_train, X_test, y_test):
         print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
     # Példa kiértékelés 'recall' számításával.
-    return np.mean(predicted == y_test)
+    print np.mean(predicted == y_test)
 
 
 # Kérdés: Milyen egyéb metrikát használnál kiértékelésre és miért?
@@ -142,8 +156,14 @@ if __name__ == '__main__':
     print predict(clf, X_test, y_test)
     print "\n"
 
+    #fit with the best model found by grid search
+    clf = fit_best_model(X_train, y_train)
+    print "Best model accuracy:"
+    print predict(clf, X_test, y_test)
+    print "\n"
+
     #grid search for SGD
-    gs_SGD(X_train, y_train, X_test, y_test)
+    #gs_SGD(X_train, y_train, X_test, y_test)
 
     # grid search for SVM
     gs_SVM(X_train, y_train, X_test, y_test)
