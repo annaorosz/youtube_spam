@@ -15,7 +15,7 @@ Stochastic Gradient Descent Classifier. Later, I also added a third classifier t
 cosine similarity kernel).
 
 Upon using grid search, I have indeed found that it is most beneficial to use a cosine similarity kernel, with other
-important observations in regards to the parameters. With this method, I was able to tune parameters such as the learning
-rate (alpha), the loss, etc in the case of the SGD. For both SGD and the SVM I was able to successfully tune the parameters
-such that it improved the accuracy of the model by several percentage points. 
+important observations in regards to the parameters. With this method, I was able to tune parameters such as the alpha,
+the loss, etc in the case of the SGD. For both SGD and the SVM I was able to successfully tune the parameters
+such that it improved the accuracy of the model by several percentage points.
 

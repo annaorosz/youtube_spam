@@ -12,8 +12,15 @@ from sklearn.svm import SVC
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import GridSearchCV
 
+
+#load the data from data.csv
 def load_data():
-    data = []
+    '''
+    X = array of the "content" feature in the data
+    y = label for each comment, 0 or 1
+    :return: tuple of data and label for both the training and testing
+    '''
+
     X = []
     y = []
 
@@ -21,14 +28,12 @@ def load_data():
     with open('data.csv', 'r') as f:
         csvreader = csv.DictReader(f)
         for item in csvreader:
-            # A 'data' tömb elemei: ['dátum string', 'szerző', 'komment', 'osztály cimke ('0': nem spam, '1': spam)']
-            data.append([item['DATE'], item['AUTHOR'], item['CONTENT'], item['CLASS']])
-
             # a model epitesehez csak a kommentek szuksegesek
             X.append(item['CONTENT'])
             y.append(item['CLASS'])
 
     # Train/test szétválasztás
+    # 'train' adatokat az osztályozó módszer kidolgozására, a 'test' adatokat kiértékelésére
     split = 0.7
     data = np.asarray(X)
     labels = np.asarray(y)
@@ -40,20 +45,18 @@ def load_data():
     y_train = labels[perm][0:int(len(labels) * split)]
     y_test = labels[perm][int(len(labels) * split):]
 
-    print('X Train set: ', np.shape(X_train))
-    print('X Test set: ', np.shape(X_test))
-
-    print('y Train set: ', np.shape(y_train))
-    print('y Test set: ', np.shape(y_test))
-
     return (X_train, y_train, X_test, y_test)
 
+
+# build a Mulinomial Naive Bayes model with the given X_train and y_train data
 def fit_MNB(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()), ('clf', MultinomialNB())])
     text_clf.fit(X_train, y_train)
 
     return text_clf
 
+
+# build a Stochastic Gradient Descent model with the given X_train and y_train data
 def fit_SGD(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
                          ('clf', SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, random_state=42,
@@ -62,6 +65,8 @@ def fit_SGD(X_train, y_train):
 
     return text_clf
 
+
+# build an SVM model with a cosine similarity kernel with the given X_train and y_train data
 def fit_SVM(X_train, y_train):
     text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
                          ('clf', SVC(kernel=cosine_similarity, random_state=42))])
@@ -69,44 +74,51 @@ def fit_SVM(X_train, y_train):
 
     return text_clf
 
+
+#predict with the given model (MNB, SGD or SVM) for the given X_test data and compare results to expected y_test
+#returns the accuracy for the given model by calculating the difference between the predicted and expected labels
 def predict(clf, X_test, y_test):
     predicted = clf.predict(X_test)
-    print (np.mean(predicted == y_test))
-    print(metrics.classification_report(y_test, predicted))
+
+    #print(metrics.classification_report(y_test, predicted))
+
+    # Példa kiértékelés 'recall' számításával.
+    return np.mean(predicted == y_test)
 
 
 def gs_SGD(X_train, y_train, X_test, y_test):
-    parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False), 'clf__alpha': (1e-2, 1e-3, 1e-4),
-                  'clf__loss': ('log', 'perceptron'),  'clf__max_iter': (3, 4, 5), 'clf__shuffle': (True, False),}
+    parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False),
+                  'clf__alpha': (1e-2, 1e-3, 1e-4), 'clf__loss': ('log', 'perceptron'),  'clf__max_iter': (3, 4, 5),
+                  'clf__shuffle': (True, False), 'clf__random_state': (42, None),}
+
     gs_clf = GridSearchCV(fit_SGD(X_train, y_train), parameters, n_jobs=-1)
     gs_clf = gs_clf.fit(X_train, y_train)
     predicted = gs_clf.predict(X_test)
 
-    print (np.mean(predicted == y_test))
     print(metrics.classification_report(y_test, predicted))
     for param_name in sorted(parameters.keys()):
         print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
+
+    # Példa kiértékelés 'recall' számításával.
+    return np.mean(predicted == y_test)
 
 
 def gs_SVM(X_train, y_train, X_test, y_test):
     parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False),
-                  'clf__kernel': ('rbf', cosine_similarity, 'linear', 'poly'),}
+                  'clf__kernel': ('rbf', cosine_similarity, 'linear', 'poly'), 'clf__random_state': (42, None),}
+
     gs_clf = GridSearchCV(fit_SVM(X_train, y_train), parameters, n_jobs=-1)
     gs_clf = gs_clf.fit(X_train, y_train)
     predicted = gs_clf.predict(X_test)
 
-    print (np.mean(predicted == y_test))
     print(metrics.classification_report(y_test, predicted))
     for param_name in sorted(parameters.keys()):
         print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
 
+    # Példa kiértékelés 'recall' számításával.
+    return np.mean(predicted == y_test)
 
 
-# Használd a 'train' adatokat az osztályozó módszer kidolgozására, a 'test' adatokat kiértékelésére!
-# Lehetőleg használj gépi tanulást!
-# Dokumentáld az érdekesnek tartott kísérleteket is!
-
-# Példa kiértékelés 'recall' számításával.
 # Kérdés: Milyen egyéb metrikát használnál kiértékelésre és miért?
 
 if __name__ == '__main__':
@@ -114,18 +126,24 @@ if __name__ == '__main__':
 
     #fit with a Multinomial Naive Bayes model
     clf = fit_MNB(X_train, y_train)
-    predict(clf, X_test, y_test)
+    print "Multinomial Naive Bayes model accuracy:"
+    print predict(clf, X_test, y_test)
+    print "\n"
 
     #fit with an SVM gradient descent classifier
     clf = fit_SGD(X_train, y_train)
-    predict(clf, X_test, y_test)
+    print "Stochastic Gradient Descent model accuracy:"
+    print predict(clf, X_test, y_test)
+    print "\n"
 
     #fit with an SVM cosine similarity classifier
     clf = fit_SVM(X_train, y_train)
-    predict(clf, X_test, y_test)
+    print "Support Vector Machine model accuracy:"
+    print predict(clf, X_test, y_test)
+    print "\n"
 
-    #grid search for sgd
+    #grid search for SGD
     gs_SGD(X_train, y_train, X_test, y_test)
 
-    # grid search for cos
+    # grid search for SVM
     gs_SVM(X_train, y_train, X_test, y_test)
