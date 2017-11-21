@@ -25,11 +25,11 @@ By setting these parameters, both models were able to achieve ~95% or higher rec
 metric to measure the performance of the model.
 
 This metric divides the true positive values found by all positive values found.
-because it is more important to find the 'ham' comments than the spam comments. This is because it is less of
+In this application it is more important to find the 'ham' comments than the spam comments. This is because it is less of
 a problem to classify a spam as ham and have an additional comment than the other way around, which would lead
 to disregarding the comment altogether.
-Another important metric which is widely used in the field of Natural Language processing, which, upon inspection
-I have found to be the best measurement of performance for this problem. This harmonic mean takes sort of an average
+Another important metric which is widely used in the field of Natural Language processing, which, upon inspection,
+I have found to be the best measurement of performance for this problem. The harmonic mean (f1) takes an "average"
 between recall and precision (another useful text classification metric). However, when the two values differ by
 a lot, it tends to be biased towards the lower value.
 
