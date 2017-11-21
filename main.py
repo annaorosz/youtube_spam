@@ -52,6 +52,7 @@ if __name__ == '__main__':
     # gridsearching for the best parameters for MNB and SVM models
     # not necessary for final solution
     # commented out because execution is expensive
-
+    '''
     MultinomialNaiveBayes().gs(X_train, y_train, X_test, y_test)
     SupportVectorMachine().gs(X_train, y_train, X_test, y_test)
+    '''
