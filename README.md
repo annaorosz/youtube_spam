@@ -33,4 +33,17 @@ I have found to be the best measurement of performance for this problem. This ha
 between recall and precision (another useful text classification metric). However, when the two values differ by
 a lot, it tends to be biased towards the lower value.
 
+Although the two final models of the youtube spam detector program achieved a similar performance (differing only
+by a few percentage points) upon analyzing the results further the SVM with the cosine similarity kernel
+performed better overall.
 
+It is important to note that an SVM is ideal in this problem since there are a disproportionate amount of spam
+instances when compared to the ham instances. In an SVM only the "edge-cases are regarded" and the model will
+be built according to these instances, so it is not a problem when one class has more instances than the other.
+
+However, when there is a large dataset and it is important to avoid expensive algorithms, a Naive Bayes model
+is ideal since it is not computationally expensive. It just uses statistical models to analyze and then predict.
+
+Furthermore, it is important to note that I would have liked to try to train a Neural Network model if I did not
+face time limitations. It would be very interesting to compare the results of such a sophisticated model to that of
+Naive Bayes.
