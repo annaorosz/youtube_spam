@@ -6,7 +6,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.linear_model import SGDClassifier
 from sklearn import metrics
 from sklearn.svm import SVC
 from sklearn.metrics.pairwise import cosine_similarity
@@ -56,14 +55,6 @@ def fit_MNB(X_train, y_train):
     return text_clf
 
 
-# build a Stochastic Gradient Descent model with the given X_train and y_train data
-def fit_SGD(X_train, y_train):
-    text_clf = Pipeline([('vect', CountVectorizer()), ('tfidf', TfidfTransformer()),
-                         ('clf', SGDClassifier(max_iter=5, tol=None))])
-    text_clf.fit(X_train, y_train)
-
-    return text_clf
-
 
 # build an SVM model with a cosine similarity kernel with the given X_train and y_train data
 def fit_SVM(X_train, y_train):
@@ -92,26 +83,6 @@ def predict(clf, X_test, y_test):
 
     # Példa kiértékelés 'recall' számításával.
     return np.mean(predicted == y_test)
-
-
-# tune the parameters for the SGD model using Grid Search and print the metrics for the best such model
-# not executing in the final version because the computation is expensive / takes a long time
-# csak a kiserlethez szukseges, nem a vegso verziohoz
-def gs_SGD(X_train, y_train, X_test, y_test):
-    parameters = {'vect__ngram_range': [(1, 1), (1, 2)],  'tfidf__use_idf': (True, False),
-                  'clf__alpha': (1e-2, 1e-3, 1e-4), 'clf__loss': ('log', 'perceptron'),  'clf__max_iter': (3, 4, 5),
-                  'clf__shuffle': (True, False), 'clf__random_state': (42, None),}
-
-    gs_clf = GridSearchCV(fit_SGD(X_train, y_train), parameters, n_jobs=-1)
-    gs_clf = gs_clf.fit(X_train, y_train)
-    predicted = gs_clf.predict(X_test)
-
-    print(metrics.classification_report(y_test, predicted))
-    for param_name in sorted(parameters.keys()):
-        print("%s: %r" % (param_name, gs_clf.best_params_[param_name]))
-
-    # Példa kiértékelés 'recall' számításával.
-    print np.mean(predicted == y_test)
 
 
 # tune the parameters for the SVM model using Grid Search and print the metrics for the best such model
@@ -144,11 +115,6 @@ if __name__ == '__main__':
     print predict(clf, X_test, y_test)
     print "\n"
 
-    #fit with an SVM gradient descent classifier
-    clf = fit_SGD(X_train, y_train)
-    print "Stochastic Gradient Descent model accuracy:"
-    print predict(clf, X_test, y_test)
-    print "\n"
 
     #fit with an SVM cosine similarity classifier
     clf = fit_SVM(X_train, y_train)
@@ -161,9 +127,3 @@ if __name__ == '__main__':
     print "Best model accuracy:"
     print predict(clf, X_test, y_test)
     print "\n"
-
-    #grid search for SGD
-    #gs_SGD(X_train, y_train, X_test, y_test)
-
-    # grid search for SVM
-    gs_SVM(X_train, y_train, X_test, y_test)
