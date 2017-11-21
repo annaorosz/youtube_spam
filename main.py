@@ -17,8 +17,19 @@ if __name__ == '__main__':
 
     clf = Classifier()
 
+    print "Training and Testing the Multinomial Naive Bayes model..."
     MultinomialNaiveBayes().fit(X_train, y_train)
-    print clf.predict(joblib.load('MNB_model.h5'), X_test, y_test)
+    clf.predict(joblib.load('MNB_model.h5'), X_test, y_test)
 
-    SVM = SupportVectorMachine().fit(X_train, y_train)
-    print clf.predict(joblib.load('SVM_model.h5'), X_test, y_test)
+    print "Training and Testing the Support Vector Machine model..."
+    SupportVectorMachine().fit(X_train, y_train)
+    clf.predict(joblib.load('SVM_model.h5'), X_test, y_test)
+
+
+    # gridsearching for the best parameters for MNB and SVM models
+    # not necessary for final solution
+    # commented out because execution is expensive
+    '''
+    MultinomialNaiveBayes().gs_MNB(X_train, y_train, X_test, y_test)
+    SupportVectorMachine().gs_SVM(X_train, y_train, X_test, y_test)
+    '''

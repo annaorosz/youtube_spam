@@ -2,7 +2,7 @@ Youtube spam detector
 
 dependencies: sci-kit learn
 
-To classify youtube comments as 'spam' or 'not spam'I decided to tokenize and then analyze the comments and the
+To classify youtube comments as 'spam' or 'ham' I decided to tokenize and then analyze the comments and the
 individual words using tf-idf.
 
 This representation allowed me to build a sophisticated ML model using just "one" feature, the comments. Obviously,

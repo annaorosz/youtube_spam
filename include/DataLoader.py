@@ -8,6 +8,7 @@ class DataLoader(object):
     def __init__(self):
         pass
 
+
     #load the data from data.csv
     def load(self):
         '''
